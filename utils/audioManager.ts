@@ -1,3 +1,4 @@
+
 // Sound Assets (MP3 for compatibility)
 const SOUNDS = {
     // BGM: Vivaldi - The Four Seasons (Spring) - Wikimedia Commons
@@ -6,11 +7,11 @@ const SOUNDS = {
     // SFX - Using reliable MP3 sources
     coin: 'https://www.soundjay.com/misc/sounds/coin-drop-1.mp3', // Buy/Sell/Profit
     paper: 'https://www.soundjay.com/misc/sounds/page-flip-01a.mp3', // Event Card
-    gavel: 'https://www.soundjay.com/misc/sounds/hammer-hit-hard-1.mp3', // Gavel Pass (Fallback to heavy hit)
+    gavel: 'https://www.soundjay.com/misc/sounds/hammer-hit-hard-1.mp3', // Gavel Pass
     scribble: 'https://www.soundjay.com/misc/sounds/writing-on-paper-1.mp3', // Loan/Short
     crash: 'https://www.soundjay.com/mechanical/sounds/glass-breaking-1.mp3', // Market Crash
     click: 'https://www.soundjay.com/buttons/sounds/button-17.mp3', // UI Click
-    pass: 'https://www.soundjay.com/human/sounds/footstep-2.mp3', // Pass turn (thud)
+    pass: 'https://www.soundjay.com/human/sounds/footstep-2.mp3', // Pass turn
 };
 
 class AudioManager {
@@ -20,28 +21,34 @@ class AudioManager {
     private initialized: boolean = false;
 
     constructor() {
-        // Preload SFX
-        Object.entries(SOUNDS).forEach(([key, url]) => {
-            if (key !== 'bgm') {
-                const audio = new Audio(url);
-                audio.volume = 0.5;
-                // Add error handling to prevent "element has no supported sources" from breaking the app flow
-                audio.onerror = () => console.warn(`Failed to load sound: ${key}`);
-                this.sounds[key] = audio;
-            }
-        });
-
-        // Setup BGM
-        this.bgmAudio = new Audio(SOUNDS.bgm);
-        this.bgmAudio.loop = true;
-        this.bgmAudio.volume = 0.2; // Keep background music subtle
-        this.bgmAudio.onerror = () => console.warn("Failed to load BGM");
+        // Empty constructor: DO NOT load Audio here to prevent network errors blocking page load
     }
 
     // Must be called after a user interaction to satisfy browser autoplay policies
     init() {
         if (this.initialized) return;
-        this.initialized = true;
+
+        try {
+            // Load SFX
+            Object.entries(SOUNDS).forEach(([key, url]) => {
+                if (key !== 'bgm') {
+                    const audio = new Audio(url);
+                    audio.volume = 0.5;
+                    audio.onerror = () => console.warn(`Failed to load sound: ${key}`);
+                    this.sounds[key] = audio;
+                }
+            });
+
+            // Setup BGM
+            this.bgmAudio = new Audio(SOUNDS.bgm);
+            this.bgmAudio.loop = true;
+            this.bgmAudio.volume = 0.2; // Keep background music subtle
+            this.bgmAudio.onerror = () => console.warn("Failed to load BGM");
+
+            this.initialized = true;
+        } catch (e) {
+            console.warn("Audio initialization failed:", e);
+        }
     }
 
     playBGM() {
@@ -57,7 +64,7 @@ class AudioManager {
     }
 
     playSFX(key: keyof typeof SOUNDS) {
-        if (this.isMuted) return;
+        if (this.isMuted || !this.initialized) return;
         
         const sound = this.sounds[key];
         if (sound) {
