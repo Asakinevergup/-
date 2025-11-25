@@ -1,3 +1,4 @@
+
 import { GameState, GamePhase, Player, ActionType, TulipColor, AP_PER_TURN, INITIAL_CASH, EventCard, BotPersonality } from '../types';
 import { BASE_PRICES, PREMIUM_TABLE, getZoneIndex, CRASH_PRICES, CARD_DEFINITIONS, DECK_COMPOSITION, TULIP_NAMES_CN } from '../constants';
 
@@ -31,10 +32,18 @@ const createDeck = (): EventCard[] => {
     const topStack = normalCards.slice(0, 8);
     const bottomStack = normalCards.slice(8);
 
-    // 3. Add 3 Crash cards to Bottom Stack and Shuffle
-    const crashDef = CARD_DEFINITIONS.find(c => c.id === 'crash')!;
-    const crashCards = Array.from({ length: 3 }, (_, i) => ({ ...crashDef, id: `crash-${i}` }));
+    // 3. Add 3 Unique Crash cards to Bottom Stack
+    const auctionDef = CARD_DEFINITIONS.find(c => c.id === 'crash_auction')!;
+    const haarlemDef = CARD_DEFINITIONS.find(c => c.id === 'crash_haarlem')!;
+    const courtDef = CARD_DEFINITIONS.find(c => c.id === 'crash_court')!;
+
+    const crashCards = [
+        { ...auctionDef, id: 'crash_auction' },
+        { ...haarlemDef, id: 'crash_haarlem' },
+        { ...courtDef, id: 'crash_court' }
+    ];
     
+    // Shuffle Bottom (7 normal + 3 crash)
     const finalBottom = [...bottomStack, ...crashCards].sort(() => Math.random() - 0.5);
 
     // 4. Combine: Top on Bottom
@@ -170,12 +179,39 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
             let newSupply = { ...state.supply };
             let sellingForbidden = false;
 
-            // Process Event Type
-            if (card.type === 'CRASH') {
-                return calculateEndGame(state, "突发事件引发市场崩盘！");
+            // Process Crash Cards
+            // 1. Failed Auction (False Crash)
+            if (card.id === 'crash_auction') {
+                newHeat = Math.max(1, newHeat - 3);
+                newLog.push("流拍导致市场热度暴跌！(热度 -3)。但交易仍在继续...");
+                
+                // Continue game normally
+                return {
+                    ...state,
+                    eventDeck: rest,
+                    currentEvent: card,
+                    discardPile: [card, ...state.discardPile],
+                    marketHeat: newHeat,
+                    phase: GamePhase.PLAYER_ACTIONS,
+                    currentPlayerIndex: state.gavelHolderIndex,
+                    remainingActions: AP_PER_TURN,
+                    log: newLog,
+                    roundCount: state.roundCount + 1,
+                    sellingForbidden: false
+                };
             }
 
-            // --- Specific Card Logic ---
+            // 2. Haarlem Panic (Standard Crash)
+            if (card.id === 'crash_haarlem') {
+                return calculateEndGame(state, "哈勒姆大恐慌！泡沫破裂，标准清算。", false);
+            }
+
+            // 3. Court Annuls Contracts (Loans Forgiven)
+            if (card.id === 'crash_court') {
+                return calculateEndGame(state, "最高法院宣布合约无效！债务被免除。", true);
+            }
+
+            // --- Specific Card Logic for Normal Cards ---
             
             // 1. Basic Heat Effects (Applied before logic that depends on Price)
             if (card.heatEffect) {
@@ -505,7 +541,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     }
 };
 
-const calculateEndGame = (state: GameState, reason: string): GameState => {
+const calculateEndGame = (state: GameState, reason: string, forgiveLoans: boolean): GameState => {
     const finalPlayers = state.players.map(p => {
         let netWorth = p.cash;
         
@@ -521,8 +557,10 @@ const calculateEndGame = (state: GameState, reason: string): GameState => {
         netWorth -= p.shorts[TulipColor.VICEROY] * CRASH_PRICES[TulipColor.VICEROY];
         netWorth -= p.shorts[TulipColor.AUGUSTUS] * CRASH_PRICES[TulipColor.AUGUSTUS];
 
-        // 3. Repay Loans
-        netWorth -= (p.loans * 1100);
+        // 3. Repay Loans (Unless Forgiven)
+        if (!forgiveLoans) {
+            netWorth -= (p.loans * 1100);
+        }
 
         return { ...p, cash: netWorth };
     });

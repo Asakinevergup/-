@@ -76,12 +76,30 @@ export const CARD_DEFINITIONS: EventCard[] = [
   { id: 'injection', title: '央行注资', description: '为了挽救颓势，阿姆斯特丹银行宣布放宽信贷限制，向市场注入流动性资金。所有玩家获得 200 盾。', type: 'POLICY' },
   { id: 'margin', title: '保证金催收', description: '银行认为市场风险过高，要求所有使用杠杆的投机者立即补足保证金。每张贷款罚 200，每张做空罚 500。', type: 'POLICY' },
   
-  // CRASH
-  { id: 'crash', title: '市场崩盘', description: '恐慌变成了踩踏，没有人再愿意出价了。曾经价值连城的球茎现在成了无人问津的洋葱。泡沫彻底破裂，游戏结束。', type: 'CRASH' },
+  // CRASH (Unique Cards)
+  { 
+      id: 'crash_auction', 
+      title: '流拍的拍卖会', 
+      description: '拍卖师敲断了木槌，却无人应价。全场死寂，只有沉重的呼吸声。这是一次假摔，还是末日的预演？ (热度立即 -3，游戏继续)', 
+      type: 'CRASH', 
+      heatEffect: -3 
+  },
+  { 
+      id: 'crash_haarlem', 
+      title: '哈勒姆大恐慌', 
+      description: '恐慌像野火一样从哈勒姆蔓延到阿姆斯特丹。泡沫彻底破裂，游戏结束。执行标准清算。', 
+      type: 'CRASH' 
+  },
+  { 
+      id: 'crash_court', 
+      title: '法庭宣布合约无效', 
+      description: '为了平息暴乱，最高法院通过紧急法案：所有红色债务契约即刻作废！游戏结束。(免除偿还贷款，但做空合约仍需结算)', 
+      type: 'CRASH' 
+  },
 ];
 
 export const DECK_COMPOSITION = {
-  rumor: 4,
+  rumor: 6,
   variety: 3,
   french: 1,
   rational: 2,
@@ -89,7 +107,10 @@ export const DECK_COMPOSITION = {
   plague: 1,
   injection: 1,
   margin: 1,
-  crash: 3
+  // 1 of each crash card
+  crash_auction: 1,
+  crash_haarlem: 1,
+  crash_court: 1
 };
 
 // Colors mapping for display

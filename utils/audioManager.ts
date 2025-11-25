@@ -1,32 +1,33 @@
 
-// Sound Assets (MP3 for compatibility via Wikimedia Commons)
-// Used transcoded MP3 versions for better cross-browser compatibility
+// Sound Assets (Using reliable Wikimedia Commons sources)
 const SOUNDS = {
-    // BGM: J.S. Bach - Goldberg Variations, Aria (Harpsichord) - Performed by Kimiko Ishizaka
-    // The Harpsichord fits the 17th Century merchant/trading atmosphere perfectly.
-    bgm: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/6/63/Goldberg_Variations_01_Aria.ogg/Goldberg_Variations_01_Aria.ogg.mp3',
+    // BGM: Vivaldi - Mandolin Concerto in C Major, RV 425 (Upbeat, market-like atmosphere)
+    bgm: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1e/Antonio_Vivaldi_-_Mandolin_Concerto_in_C_Major%2C_RV_425_-_I._Allegro.ogg/Antonio_Vivaldi_-_Mandolin_Concerto_in_C_Major%2C_RV_425_-_I._Allegro.ogg.mp3',
     
     // SFX
-    coin: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/3/34/Coins_dropping_on_hard_surface.ogg/Coins_dropping_on_hard_surface.ogg.mp3', // Coins
-    paper: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8e/Turning_a_page.ogg/Turning_a_page.ogg.mp3', // Paper flip
-    gavel: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/7/7f/Gavel_3_times.ogg/Gavel_3_times.ogg.mp3', // Gavel
-    scribble: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/5/52/Writing_on_paper_with_pen.ogg/Writing_on_paper_with_pen.ogg.mp3', // Writing
-    crash: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/82/Glass_Break.ogg/Glass_Break.ogg.mp3', // Glass break
-    click: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/a/a3/Mouse_click_01.ogg/Mouse_click_01.ogg.mp3', // Click
-    pass: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d8/Door_close_01.ogg/Door_close_01.ogg.mp3', // Pass/Door Close
+    coin: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/3/34/Coins_dropping_on_hard_surface.ogg/Coins_dropping_on_hard_surface.ogg.mp3', 
+    paper: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8e/Turning_a_page.ogg/Turning_a_page.ogg.mp3', 
+    gavel: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/7/7f/Gavel_3_times.ogg/Gavel_3_times.ogg.mp3', 
+    scribble: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/5/52/Writing_on_paper_with_pen.ogg/Writing_on_paper_with_pen.ogg.mp3', 
+    crash: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/82/Glass_Break.ogg/Glass_Break.ogg.mp3',
+    click: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/a/a3/Mouse_click_01.ogg/Mouse_click_01.ogg.mp3',
+    pass: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d8/Door_close_01.ogg/Door_close_01.ogg.mp3',
 };
 
+type SoundKey = keyof typeof SOUNDS;
+
 class AudioManager {
-    private sounds: Record<string, HTMLAudioElement> = {};
+    private sounds: Partial<Record<string, HTMLAudioElement>> = {};
     private bgmAudio: HTMLAudioElement | null = null;
     private isMuted: boolean = false;
     private initialized: boolean = false;
+    private loadedStatus: Record<string, boolean> = {}; // Track which sounds are actually ready
 
     constructor() {
-        // Empty constructor: DO NOT load Audio here to prevent network errors blocking page load
+        // Empty constructor
     }
 
-    // Must be called after a user interaction to satisfy browser autoplay policies
+    // Must be called after a user interaction
     init() {
         if (this.initialized) return;
 
@@ -35,9 +36,20 @@ class AudioManager {
             Object.entries(SOUNDS).forEach(([key, url]) => {
                 if (key !== 'bgm') {
                     const audio = new Audio(url);
-                    audio.volume = 0.5;
-                    audio.crossOrigin = "anonymous";
-                    audio.onerror = () => console.warn(`Failed to load sound: ${key}`);
+                    audio.volume = 0.6;
+                    // Removed crossOrigin to prevent CORS errors on simple playback
+                    
+                    // Only mark as ready when browser says so
+                    audio.oncanplaythrough = () => {
+                        this.loadedStatus[key] = true;
+                    };
+                    
+                    // Silent error handling
+                    audio.onerror = () => {
+                        this.loadedStatus[key] = false;
+                        // console.warn(`Audio skipped: ${key}`); // Uncomment for debugging
+                    };
+                    
                     this.sounds[key] = audio;
                 }
             });
@@ -45,19 +57,30 @@ class AudioManager {
             // Setup BGM
             this.bgmAudio = new Audio(SOUNDS.bgm);
             this.bgmAudio.loop = true;
-            this.bgmAudio.volume = 0.3; // Gentle background volume
-            this.bgmAudio.crossOrigin = "anonymous";
-            this.bgmAudio.onerror = () => console.warn("Failed to load BGM");
+            this.bgmAudio.volume = 0.2; // Slightly lower volume for the busy mandolin track
+            
+            this.bgmAudio.oncanplaythrough = () => {
+                this.loadedStatus['bgm'] = true;
+            };
+            this.bgmAudio.onerror = () => {
+                this.loadedStatus['bgm'] = false;
+            };
 
             this.initialized = true;
         } catch (e) {
-            console.warn("Audio initialization failed:", e);
+            // console.warn("Audio initialization failed:", e);
         }
     }
 
     playBGM() {
         if (this.isMuted || !this.bgmAudio || !this.initialized) return;
-        this.bgmAudio.play().catch(e => console.warn("Audio autoplay blocked", e));
+        
+        // Only try to play if we haven't failed loading
+        if (this.loadedStatus['bgm'] !== false) {
+             this.bgmAudio.play().catch(() => {
+                 // Autoplay blocked or network error - ignore silently
+             });
+        }
     }
 
     stopBGM() {
@@ -67,13 +90,16 @@ class AudioManager {
         }
     }
 
-    playSFX(key: keyof typeof SOUNDS) {
+    playSFX(key: SoundKey) {
         if (this.isMuted || !this.initialized) return;
         
-        const sound = this.sounds[key];
-        if (sound) {
-            sound.currentTime = 0;
-            sound.play().catch(() => {});
+        // Check if sound is loaded before playing to avoid "supported sources" error
+        if (this.loadedStatus[key]) {
+            const sound = this.sounds[key];
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(() => {});
+            }
         }
     }
 
@@ -82,7 +108,10 @@ class AudioManager {
         if (this.isMuted) {
             this.bgmAudio?.pause();
         } else {
-            if (this.initialized) this.bgmAudio?.play().catch(() => {});
+            // Only resume if initialized and loaded
+            if (this.initialized && this.loadedStatus['bgm']) {
+                this.bgmAudio?.play().catch(() => {});
+            }
         }
         return this.isMuted;
     }
