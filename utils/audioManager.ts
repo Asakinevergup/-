@@ -1,17 +1,18 @@
 
-// Sound Assets (MP3 for compatibility)
+// Sound Assets (MP3 for compatibility via Wikimedia Commons)
+// Used transcoded MP3 versions for better cross-browser compatibility
 const SOUNDS = {
-    // BGM: Vivaldi - The Four Seasons (Spring) - Wikimedia Commons
+    // BGM: Vivaldi - The Four Seasons (Spring)
     bgm: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d3/Vivaldi_Spring_mvt_1_Allegro_-_John_Harrison_violin.ogg/Vivaldi_Spring_mvt_1_Allegro_-_John_Harrison_violin.ogg.mp3',
     
-    // SFX - Using reliable MP3 sources
-    coin: 'https://www.soundjay.com/misc/sounds/coin-drop-1.mp3', // Buy/Sell/Profit
-    paper: 'https://www.soundjay.com/misc/sounds/page-flip-01a.mp3', // Event Card
-    gavel: 'https://www.soundjay.com/misc/sounds/hammer-hit-hard-1.mp3', // Gavel Pass
-    scribble: 'https://www.soundjay.com/misc/sounds/writing-on-paper-1.mp3', // Loan/Short
-    crash: 'https://www.soundjay.com/mechanical/sounds/glass-breaking-1.mp3', // Market Crash
-    click: 'https://www.soundjay.com/buttons/sounds/button-17.mp3', // UI Click
-    pass: 'https://www.soundjay.com/human/sounds/footstep-2.mp3', // Pass turn
+    // SFX
+    coin: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/3/34/Coins_dropping_on_hard_surface.ogg/Coins_dropping_on_hard_surface.ogg.mp3', // Coins
+    paper: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8e/Turning_a_page.ogg/Turning_a_page.ogg.mp3', // Paper flip
+    gavel: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/7/7f/Gavel_3_times.ogg/Gavel_3_times.ogg.mp3', // Gavel
+    scribble: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/5/52/Writing_on_paper_with_pen.ogg/Writing_on_paper_with_pen.ogg.mp3', // Writing
+    crash: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/82/Glass_Break.ogg/Glass_Break.ogg.mp3', // Glass break
+    click: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/a/a3/Mouse_click_01.ogg/Mouse_click_01.ogg.mp3', // Click
+    pass: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d8/Door_close_01.ogg/Door_close_01.ogg.mp3', // Pass/Door Close
 };
 
 class AudioManager {
@@ -34,6 +35,7 @@ class AudioManager {
                 if (key !== 'bgm') {
                     const audio = new Audio(url);
                     audio.volume = 0.5;
+                    audio.crossOrigin = "anonymous";
                     audio.onerror = () => console.warn(`Failed to load sound: ${key}`);
                     this.sounds[key] = audio;
                 }
@@ -43,6 +45,7 @@ class AudioManager {
             this.bgmAudio = new Audio(SOUNDS.bgm);
             this.bgmAudio.loop = true;
             this.bgmAudio.volume = 0.2; // Keep background music subtle
+            this.bgmAudio.crossOrigin = "anonymous";
             this.bgmAudio.onerror = () => console.warn("Failed to load BGM");
 
             this.initialized = true;

@@ -254,7 +254,7 @@ const RulesModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
                                     恐慌组 (PANIC) - 5张
                                 </h4>
                                 <ul className="list-disc list-inside text-xs text-[#a8a29e] space-y-1 ml-1">
-                                    <li><strong>理性的声音 (x2):</strong> 只有当热度 > 7 (L8+) 时，才会生效导致热度 -2。</li>
+                                    <li><strong>理性的声音 (x2):</strong> 只有当热度 &gt; 7 (L8+) 时，才会生效导致热度 -2。</li>
                                     <li>
                                         <strong>球茎腐烂 (x2):</strong> 热度 -1。并支付<strong>严酷维护费</strong>：
                                         <br/><span className="pl-4">持有[杂色/副王]：付[当前杂色基准价]/张。</span>
