@@ -2,8 +2,9 @@
 // Sound Assets (MP3 for compatibility via Wikimedia Commons)
 // Used transcoded MP3 versions for better cross-browser compatibility
 const SOUNDS = {
-    // BGM: Vivaldi - The Four Seasons (Spring)
-    bgm: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/d/d3/Vivaldi_Spring_mvt_1_Allegro_-_John_Harrison_violin.ogg/Vivaldi_Spring_mvt_1_Allegro_-_John_Harrison_violin.ogg.mp3',
+    // BGM: J.S. Bach - Goldberg Variations, Aria (Harpsichord) - Performed by Kimiko Ishizaka
+    // The Harpsichord fits the 17th Century merchant/trading atmosphere perfectly.
+    bgm: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/6/63/Goldberg_Variations_01_Aria.ogg/Goldberg_Variations_01_Aria.ogg.mp3',
     
     // SFX
     coin: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/3/34/Coins_dropping_on_hard_surface.ogg/Coins_dropping_on_hard_surface.ogg.mp3', // Coins
@@ -44,7 +45,7 @@ class AudioManager {
             // Setup BGM
             this.bgmAudio = new Audio(SOUNDS.bgm);
             this.bgmAudio.loop = true;
-            this.bgmAudio.volume = 0.2; // Keep background music subtle
+            this.bgmAudio.volume = 0.3; // Gentle background volume
             this.bgmAudio.crossOrigin = "anonymous";
             this.bgmAudio.onerror = () => console.warn("Failed to load BGM");
 
